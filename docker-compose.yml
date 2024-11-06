@@ -1,0 +1,37 @@
+version: "3.9"
+name: "flask-app"
+
+services:
+  flask:
+    build: venv
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./venv:/line_flask_app
+    env_file:
+      - .env.dev
+    depends_on:
+      - db
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+  db:
+    image: postgres:13-alpine
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=hi_line_flask
+      - POSTGRES_PASSWORD=hi_line_flask
+      - POSTGRES_DB=hi_line_flask
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+
+volumes:
+  postgres_data:
