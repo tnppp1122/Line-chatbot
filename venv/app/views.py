@@ -14,6 +14,10 @@ import string
 from linebot.models import *
 from linebot import *
 from app.models.test import Test
+from urllib.request import urlopen
+import json
+from urllib.parse import quote
+
 
 @app.route('/')
 def home():
@@ -80,11 +84,33 @@ def callback():
 
 
 def reply(intent,text,reply_token,id,disname):
-    if intent == 'ทดสอบ':
+    if intent == 'test_f':
         text_message = TextSendMessage(text='ทดสอบสำเร็จ')
         line_bot_api.reply_message(reply_token,text_message)
         
     
+    
+    if intent == 'weather_f':
+        city = "Chiang Mai"
+        decode = quote(city)
+        token = app.config['WEATHER_TOKEN']
+        api_url = 'https://api.waqi.info/feed/'+decode+'/?token='+token
+        res = urlopen(api_url)
+        w_data = json.loads(res.read())
+        json_weather = {
+                'AQI': w_data['data']['aqi'],
+                'PM2.5': w_data['data']['iaqi']['pm25']['v'],
+                'Temperature': w_data['data']['iaqi']['t']['v'],
+                'Time': w_data['data']['time']['s'] 
+            }
+        aqi = json_weather['AQI']
+        pm25 = str(json_weather['PM2.5']) 
+        Temperature = str(json_weather['Temperature'])
+        Time = str(json_weather['Time'])
+        text_message = TextSendMessage(
+            text='สภาพอากาศเชียงใหม่\nAQI = {}\nPM25 = {}\nอุณหภูมิ = {}\nเวลา = {}'.format(
+                aqi, pm25, Temperature, Time))
+        line_bot_api.reply_message(reply_token,text_message)
         
 
 if __name__ == '__main__':

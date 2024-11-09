@@ -31,6 +31,8 @@ db = SQLAlchemy(app)
 
 app.config['LINE_BOT_API'] = os.getenv("LINE_BOT_API", None)
 app.config['HANDLER'] = os.getenv("HANDLER", None)
+app.config['WEATHER_TOKEN'] = os.getenv("WEATHER_TOKEN", None)
+app.config['LINK'] = os.getenv("LINK", None)
 
 
 from app import views  # noqa
