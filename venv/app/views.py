@@ -17,18 +17,18 @@ from app.models.test import Test
 from urllib.request import urlopen
 import json
 from urllib.parse import quote
+import ast
 
 
 @app.route('/')
 def home():
-
     print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
     new=Test(
-        firstname="somsom"
+        firstname="I'm the king of the world!!!"
     )
     db.session.add(new)
     db.session.commit()
-    return "hello world"
+    return "hello, world"
 
 @app.route('/t')
 def t():
@@ -40,19 +40,6 @@ def t():
         }
         t_l.append(x)
     return jsonify(t_l)
-
-@app.route('/db')
-def db_connection():
-    try:
-        with db.engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-        return '<h1>db works.</h1>'
-    except Exception as e:
-        return '<h1>db is broken.</h1>' + str(e)
-
-@app.route('/crash')
-def crash():
-    return 1/0
 
 
 LINE_BOT_API=app.config['LINE_BOT_API']
@@ -88,10 +75,18 @@ def reply(intent,text,reply_token,id,disname):
         text_message = TextSendMessage(text='ทดสอบสำเร็จ')
         line_bot_api.reply_message(reply_token,text_message)
         
-    
-    
-    if intent == 'weather_f':
-        city = "Chiang Mai"
+    if intent == 'rose_f':
+        m_link=app.config['IMAGE_LINK']
+        image_links = ast.literal_eval(m_link)
+        chosen_image = random.choice(image_links)        
+        image_message = ImageSendMessage(
+            original_content_url=chosen_image['original'],
+            preview_image_url=chosen_image['preview']
+        )
+        line_bot_api.reply_message(reply_token, image_message)
+        
+    if intent == 'weather_f - custom':
+        city = text
         decode = quote(city)
         token = app.config['WEATHER_TOKEN']
         api_url = 'https://api.waqi.info/feed/'+decode+'/?token='+token
@@ -108,8 +103,8 @@ def reply(intent,text,reply_token,id,disname):
         Temperature = str(json_weather['Temperature'])
         Time = str(json_weather['Time'])
         text_message = TextSendMessage(
-            text='สภาพอากาศเชียงใหม่\nAQI = {}\nPM25 = {}\nอุณหภูมิ = {}\nเวลา = {}'.format(
-                aqi, pm25, Temperature, Time))
+            text='สภาพอากาศ : {}\nAQI = {}\nPM25 = {}\nอุณหภูมิ = {}\nเวลา = {}'.format(
+                text, aqi, pm25, Temperature, Time))
         line_bot_api.reply_message(reply_token,text_message)
         
 
