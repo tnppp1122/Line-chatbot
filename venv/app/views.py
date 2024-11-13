@@ -18,6 +18,7 @@ from urllib.request import urlopen
 import json
 from urllib.parse import quote
 import ast
+from app.models.memo import Memo
 
 
 @app.route('/')
@@ -32,11 +33,15 @@ def home():
 
 @app.route('/t')
 def t():
-    t = Test.query.all()
+    t = Memo.query.all()
     t_l = []
     for i in t:
         x={
-            'firstname' : i.firstname
+            'topic' : i.topic,
+            'content' : i.content,
+            'date' : i.date,
+            'deadline' : i.deadline
+            
         }
         t_l.append(x)
     return jsonify(t_l)
@@ -51,7 +56,7 @@ handler = WebhookHandler(HANDLER)
 @app.route("/callback", methods=['POST'])
 def callback():
     body = request.get_data(as_text=True)
-    # print(body)
+    print(body)
     req = request.get_json(silent=True, force=True)
     intent = req["queryResult"]["intent"]["displayName"] 
     text = req['originalDetectIntentRequest']['payload']['data']['message']['text'] 
@@ -59,13 +64,15 @@ def callback():
     id = req['originalDetectIntentRequest']['payload']['data']['source']['userId']
     disname = line_bot_api.get_profile(id).display_name
 
+    first_line = text.splitlines()[0]
     print('id = ' + id)
     print('name = ' + disname)
     print('text = ' + text)
+    print('first_line_text = ' + first_line)
     print('intent = ' + intent)
     print('reply_token = ' + reply_token)
     
-    reply(intent,text,reply_token,id,disname)
+    reply(intent,first_line,reply_token,id,disname)
 
     return 'OK'
 
@@ -86,7 +93,8 @@ def reply(intent,text,reply_token,id,disname):
         line_bot_api.reply_message(reply_token, image_message)
         
     if intent == 'weather_f - custom':
-        city = text
+        spilt_text = text.splitlines()
+        city = spilt_text[1]
         decode = quote(city)
         token = app.config['WEATHER_TOKEN']
         api_url = 'https://api.waqi.info/feed/'+decode+'/?token='+token
@@ -104,7 +112,42 @@ def reply(intent,text,reply_token,id,disname):
         Time = str(json_weather['Time'])
         text_message = TextSendMessage(
             text='สภาพอากาศ : {}\nAQI = {}\nPM25 = {}\nอุณหภูมิ = {}\nเวลา = {}'.format(
-                text, aqi, pm25, Temperature, Time))
+                city, aqi, pm25, Temperature, Time))
+        line_bot_api.reply_message(reply_token,text_message)
+    
+    if intent == 'Explain - custom':
+        spilt_text = text.splitlines()
+        topic = spilt_text[1]
+        content = spilt_text[2]
+        print(spilt_text)
+        memo_index=Memo(
+            topic=topic,
+            content=content
+        )
+        db.session.add(memo_index)
+        db.session.commit()
+        
+        text_message = TextSendMessage(
+            text='Topic : {}\nบันทึกสำเร็จ'.format(topic))
+        line_bot_api.reply_message(reply_token,text_message)
+        
+    if intent == 'Remind - custom':
+        spilt_text = text.splitlines()
+        print(spilt_text)
+        topic = spilt_text[1]
+        content = spilt_text[2]
+        deadline = spilt_text[3]
+        # print(spilt_text)
+        memo_index=Memo(
+            topic=topic,
+            content=content,
+            deadline=deadline
+        )
+        db.session.add(memo_index)
+        db.session.commit()
+        
+        text_message = TextSendMessage(
+            text='เตือน : {}\nบันทึกสำเร็จ'.format(topic))
         line_bot_api.reply_message(reply_token,text_message)
         
 
