@@ -71,8 +71,8 @@ def callback():
     print('first_line_text = ' + first_line)
     print('intent = ' + intent)
     print('reply_token = ' + reply_token)
+    # intent="Remind - custom"
     reply(intent,text,reply_token,id)
-
     return 'OK'
 
 
@@ -192,6 +192,36 @@ def reply(intent,text,reply_token,id):
                 topic['topic'], topic['content'], topic['date'], topic['deadline'])
             )
         line_bot_api.reply_message(reply_token,text_message)
+    
+    if intent == "Last_Day":
+    
+        filtered_memos = []
+        for memo in Memo.query.all():  
+            if memo.deadline is not None:
+        
+                date = memo.date.strftime("%d-%m-%Y")
+                
+                date1=datetime.strptime(date, "%d-%m-%Y")
+                print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+                print(memo.deadline)
+                deadline=datetime.strptime(memo.deadline, "%d-%m-%Y")
+           
+                time_diff = date1 - deadline
+              
+                if abs(time_diff) <= timedelta(hours=24):
+                    filtered_memos.append(memo)
+
+        # for memo in filtered_memos:
+        #     print(f"Topic: {memo.topic}, Date: {memo.date}, Deadline: {memo.deadline}")
+            
+        message_text = "รายการทั้งหมด \n"
+        for memo in filtered_memos:
+            message_text += "หัวข้อ : {}\nเนื้อหา : {}\nวันที่ : {}\nกำหนดส่ง : {}\n\n".format(
+                memo.topic, memo.content, memo.date, memo.deadline
+            )
+
+        text_message = TextSendMessage(text=message_text)
+        line_bot_api.reply_message(reply_token, text_message)
         
         
 
