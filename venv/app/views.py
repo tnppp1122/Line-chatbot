@@ -19,7 +19,7 @@ import json
 from urllib.parse import quote
 import ast
 from app.models.memo import Memo
-
+from datetime import datetime, timedelta
 
 @app.route('/')
 def home():
@@ -56,28 +56,27 @@ handler = WebhookHandler(HANDLER)
 @app.route("/callback", methods=['POST'])
 def callback():
     body = request.get_data(as_text=True)
-    print(body)
+    # print(body)
     req = request.get_json(silent=True, force=True)
     intent = req["queryResult"]["intent"]["displayName"] 
     text = req['originalDetectIntentRequest']['payload']['data']['message']['text'] 
     reply_token = req['originalDetectIntentRequest']['payload']['data']['replyToken']
     id = req['originalDetectIntentRequest']['payload']['data']['source']['userId']
-    disname = line_bot_api.get_profile(id).display_name
+    # disname = line_bot_api.get_profile(id).display_name
 
     first_line = text.splitlines()[0]
     print('id = ' + id)
-    print('name = ' + disname)
+    # print('name = ' + disname)
     print('text = ' + text)
     print('first_line_text = ' + first_line)
     print('intent = ' + intent)
     print('reply_token = ' + reply_token)
-    
-    reply(intent,first_line,reply_token,id,disname)
+    reply(intent,text,reply_token,id)
 
     return 'OK'
 
 
-def reply(intent,text,reply_token,id,disname):
+def reply(intent,text,reply_token,id):
     if intent == 'test_f':
         text_message = TextSendMessage(text='ทดสอบสำเร็จ')
         line_bot_api.reply_message(reply_token,text_message)
@@ -117,9 +116,9 @@ def reply(intent,text,reply_token,id,disname):
     
     if intent == 'Explain - custom':
         spilt_text = text.splitlines()
+        print(spilt_text)
         topic = spilt_text[1]
         content = spilt_text[2]
-        print(spilt_text)
         memo_index=Memo(
             topic=topic,
             content=content
@@ -149,6 +148,51 @@ def reply(intent,text,reply_token,id,disname):
         text_message = TextSendMessage(
             text='เตือน : {}\nบันทึกสำเร็จ'.format(topic))
         line_bot_api.reply_message(reply_token,text_message)
+    
+    if intent == "LIST":
+        memo_db = Memo.query.all()
+        list_topic = []
+        for i in memo_db:
+            topic={
+                'topic' : i.topic,
+                'content' : i.content,
+                'date' : i.date,
+                'deadline' : i.deadline
+            }
+            list_topic.append(topic)
+        json_topic = jsonify(list_topic)
+        
+        message_text = "รายการทั้งหมด \n"
+        for topic in list_topic:
+            message_text += "หัวข้อ : {}\nเนื้อหา : {}\nวันที่ : {}\nกำหนดส่ง : {}\n\n".format(
+                topic['topic'], topic['content'], topic['date'], topic['deadline']
+            )
+
+        text_message = TextSendMessage(text=message_text)
+        line_bot_api.reply_message(reply_token, text_message)
+    
+    if intent == "Open_file - custom":
+        spilt_text = text.splitlines()
+        print(spilt_text)
+        topic = spilt_text[1]
+        memo_db_filter = Memo.query.filter(Memo.topic==topic).all()
+        list_topic = []
+        for i in memo_db_filter:
+            topic={
+                'topic' : i.topic,
+                'content' : i.content,
+                'date' : i.date,
+                'deadline' : i.deadline
+            }
+            list_topic.append(topic)
+        json_topic = jsonify(list_topic)
+
+        text_message = TextSendMessage(
+            text="หัวข้อ : {}\nเนื้อหา : {}\nวันที่ : {}\nกำหนดส่ง : {}\n\n".format(
+                topic['topic'], topic['content'], topic['date'], topic['deadline'])
+            )
+        line_bot_api.reply_message(reply_token,text_message)
+        
         
 
 if __name__ == '__main__':
