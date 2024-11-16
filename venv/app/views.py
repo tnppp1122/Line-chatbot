@@ -71,7 +71,16 @@ def callback():
     print('first_line_text = ' + first_line)
     print('intent = ' + intent)
     print('reply_token = ' + reply_token)
-    # intent="Remind - custom"
+    
+    if first_line == "เตือน":
+        intent = "Remind - custom"
+    elif first_line == "บอกเล่า":
+        intent = "Explain - custom"
+    elif first_line == "จังหวัด":
+        intent = "weather_f - custom"
+    elif first_line == "เปิด":
+        intent = "Open_file - custom"
+        
     reply(intent,text,reply_token,id)
     return 'OK'
 
@@ -210,9 +219,6 @@ def reply(intent,text,reply_token,id):
               
                 if abs(time_diff) <= timedelta(hours=24):
                     filtered_memos.append(memo)
-
-        # for memo in filtered_memos:
-        #     print(f"Topic: {memo.topic}, Date: {memo.date}, Deadline: {memo.deadline}")
             
         message_text = "รายการทั้งหมด \n"
         for memo in filtered_memos:
