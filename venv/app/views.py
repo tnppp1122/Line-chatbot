@@ -14,6 +14,7 @@ import string
 from linebot.models import *
 from linebot import *
 from app.models.test import Test
+from app.models.leave import Leave
 from urllib.request import urlopen
 import json
 from urllib.parse import quote
@@ -21,6 +22,8 @@ import ast
 from app.models.memo import Memo
 from datetime import datetime, timedelta
 from app.helper_intent.memo_core import memo_core
+from app.helper_intent.leave_core import leave_core
+import requests
 
 @app.route('/')
 def home():
@@ -81,6 +84,10 @@ def callback():
         intent = "weather_f - custom"
     elif first_line == "เปิด":
         intent = "Open_file - custom"
+    elif first_line == "Program" or "program":
+        intent = "add-program - custom"
+    elif first_line == "Leave" or "leave":
+        intent = "add-leave-day - custom"
         
     reply(intent,text,reply_token,id)
     return 'OK'
@@ -127,6 +134,29 @@ def reply(intent,text,reply_token,id):
     if intent in ["Explain - custom", "Remind - custom", "LIST", "Open_file - custom", "Last_Day"]:
         memo_core(intent,text,reply_token)
         
-
+    if intent == 'covid19_f':
+        url = "https://covid19.ddc.moph.go.th/api/Cases/today-cases-all"
+        response = requests.get(url)
+        if response.status_code == 200:
+            data = response.json()
+            # print(data)
+            year = data[0]['year']
+            new_case = data[0]['new_case']
+            total_case = data[0]['total_case']
+            new_death = data[0]['new_death']
+            total_death = data[0]['total_death']
+            update_date = data[0]['update_date']
+            
+            text_message = TextSendMessage(
+            text='Covid19 per Week\n{}\nจำนวนผู้ป่วยรายใหม่ = {}\nจำนวนผู้ป่วยทั้งหมด = {}\nจำนวนผู้เสียชีวิตของสัปดาห์ = {}\nจำนวนผู้เสียชีวิตทั้งหมด = {}'.format(
+                update_date, new_case, total_case, new_death, total_death))
+            line_bot_api.reply_message(reply_token,text_message)
+        else:
+            print(f"fail : {response.status_code}")
+            
+    if intent in ["add-program - custom", "add-leave-day - custom", "list-leave"]:
+        leave_core(intent,text,reply_token)
+        
+        
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
