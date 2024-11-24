@@ -131,9 +131,6 @@ def reply(intent,text,reply_token,id):
                 city, aqi, pm25, Temperature, Time))
         line_bot_api.reply_message(reply_token,text_message)
         
-    if intent in ["Explain - custom", "Remind - custom", "LIST", "Open_file - custom", "Last_Day"]:
-        memo_core(intent,text,reply_token)
-        
     if intent == 'covid19_f':
         url = "https://covid19.ddc.moph.go.th/api/Cases/today-cases-all"
         response = requests.get(url)
@@ -153,6 +150,9 @@ def reply(intent,text,reply_token,id):
             line_bot_api.reply_message(reply_token,text_message)
         else:
             print(f"fail : {response.status_code}")
+            
+    if intent in ["Explain - custom", "Remind - custom", "LIST", "Open_file - custom", "Last_Day"]:
+        memo_core(intent,text,reply_token)
             
     if intent in ["add-program - custom", "add-leave-day - custom", "list-leave"]:
         leave_core(intent,text,reply_token)
