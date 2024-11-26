@@ -17,11 +17,11 @@
 > ![]()
 ### Memo
 * Thing can do :
-** Can add the story
-*** Can explain the story
-*** Can remind
-** You can view all items
-** You can choose to view
-** You can choose to view the deadline.
+    * Can add the story
+        * Can explain the story
+        * Can remind
+    * You can view all items
+    * You can choose to view
+    * You can choose to view the deadline.
 
     
