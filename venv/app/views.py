@@ -84,9 +84,9 @@ def callback():
         intent = "weather_f - custom"
     elif first_line == "เปิด":
         intent = "Open_file - custom"
-    elif first_line == "Program" or "program":
+    elif first_line == "Program":
         intent = "add-program - custom"
-    elif first_line == "Leave" or "leave":
+    elif first_line == "Leave":
         intent = "add-leave-day - custom"
         
     reply(intent,text,reply_token,id)
