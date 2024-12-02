@@ -23,6 +23,7 @@ from app.models.memo import Memo
 from datetime import datetime, timedelta
 from app.helper_intent.memo_core import memo_core
 from app.helper_intent.leave_core import leave_core
+from app.helper_intent.funfact_core import funfact_core
 import requests
 
 @app.route('/')
@@ -150,7 +151,10 @@ def reply(intent,text,reply_token,id):
             line_bot_api.reply_message(reply_token,text_message)
         else:
             print(f"fail : {response.status_code}")
-            
+    
+    if intent in ["fun-and-fact-cat_f", "fun-and-fact-nasa_f", "fun-and-fact-joke_f"]:
+        funfact_core(intent,text,reply_token)
+        
     if intent in ["Explain - custom", "Remind - custom", "LIST", "Open_file - custom", "Last_Day"]:
         memo_core(intent,text,reply_token)
             
